@@ -19,6 +19,8 @@ package org.apache.camel.component.zeromq;
 
 public final class ZeroMQConstants {
 
+    public static final String ZEROMQ_VERSION = "2.0";
+
     private ZeroMQConstants() {
     }
 }

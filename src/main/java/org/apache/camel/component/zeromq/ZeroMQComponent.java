@@ -44,8 +44,7 @@ public class ZeroMQComponent extends DefaultComponent {
     protected final Endpoint createEndpoint(String uri, String remaining, Map parameters) {
         LOG.trace("Begin ZeroMQComponent.createEndpoint");
         try {
-            ZeroMQEndpoint zeroMQEndpoint = new ZeroMQEndpoint(uri, remaining, parameters, this.getCamelContext());
-            return zeroMQEndpoint;
+            return new ZeroMQEndpoint(uri, remaining, parameters, this.getCamelContext());
         } catch (Exception ex) {
             LOG.fatal(ex, ex);
             throw new RuntimeCamelException(ex);

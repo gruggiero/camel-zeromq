@@ -17,7 +17,6 @@
 package org.apache.camel.component.zeromq;
 
 import org.apache.camel.*;
-import org.apache.camel.component.zeromq.ZeroMQSupport;
 import org.apache.camel.impl.DefaultEndpoint;
 import org.apache.camel.spi.ManagementAware;
 import org.apache.commons.logging.Log;
@@ -38,11 +37,11 @@ public class ZeroMQEndpoint extends DefaultEndpoint implements ManagementAware<Z
     private ZeroMQProducer producer;
     private ZeroMQConsumer consumer;
 
-    public String getZeroMQURI() {
+    public final String getZeroMQURI() {
         return zeroMQURI;
     }
 
-    public Map getZeroMQProperties() {
+    public final Map getZeroMQProperties() {
         return zeroMQProperties;
     }
 
@@ -97,7 +96,7 @@ public class ZeroMQEndpoint extends DefaultEndpoint implements ManagementAware<Z
     }
 
     @Override
-    public boolean isLenientProperties() {
+    public final boolean isLenientProperties() {
         return true;
     }
 
@@ -108,7 +107,7 @@ public class ZeroMQEndpoint extends DefaultEndpoint implements ManagementAware<Z
     }
 
 
-    public ZeroMQConsumer getConsumer() {
+    public final ZeroMQConsumer getConsumer() {
         return consumer;
     }
     

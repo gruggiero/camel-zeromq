@@ -16,15 +16,14 @@
  */
 package org.apache.camel.component.zeromq;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-
 import org.apache.camel.util.IOHelper;
 
-public class NativeLibraryLoader {
+import java.io.*;
+
+public final class NativeLibraryLoader {
+
+    private NativeLibraryLoader() {
+    }
 
     public static void loadLibrary(String libname) throws IOException {
         String actualLibName = System.mapLibraryName(libname);
@@ -38,10 +37,8 @@ public class NativeLibraryLoader {
             throw new IOException("Unable to find library " + resourcename + " on classpath");
         }
         File tmpDir = new File(System.getProperty("java.tmpdir", "tmplib"));
-        if (!tmpDir.exists()) {
-            if (!tmpDir.mkdirs()) {
-                throw new IOException("Unable to create JNI library working directory " + tmpDir);
-            }
+        if (!tmpDir.exists() && !tmpDir.mkdirs()) {
+            throw new IOException("Unable to create JNI library working directory " + tmpDir);
         }
         File outfile = new File(tmpDir, resourcename);
         OutputStream out = new FileOutputStream(outfile);
