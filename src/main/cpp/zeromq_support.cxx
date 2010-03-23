@@ -57,46 +57,39 @@ void ZeroMQSupport::send(void * buffer, long size) {
 }
 
 long ZeroMQSupport::waitForMessage() {
-    if(consumer) {
-        boost::unique_lock<boost::mutex> lock(mut_data_ready);
-        while(!data_ready)
-        {
-            cond_data_ready.wait(lock);
-        }
+    boost::unique_lock<boost::mutex> lock(mut_data_ready);
+    while(!data_ready)
+    {
+        cond_data_ready.wait(lock);
+    }
 
-        return size;
-    } else
-        return -1;
+    return size;
 }
 
 void ZeroMQSupport::copy(void * buffer, long size) {
-    if(consumer) {
-        memcpy(buffer, this->buffer, size);
+    memcpy(buffer, this->buffer, size);
 
-        this->buffer = NULL;
-        this->size = -1;
+    this->buffer = NULL;
+    this->size = -1;
 
-        boost::lock_guard<boost::mutex> lock(mut_data_ready);
-        data_ready = false;
-        cond_data_ready.notify_one();
-    }
+    boost::lock_guard<boost::mutex> lock(mut_data_ready);
+    data_ready = false;
+    cond_data_ready.notify_one();
 }
 
 void ZeroMQSupport::put(void * buffer, long size) {
-    if(consumer) {
-        this->buffer = buffer;
-        this->size = size;
+    this->buffer = buffer;
+    this->size = size;
+    {
+        boost::lock_guard<boost::mutex> lock1(mut_data_ready);
+        data_ready=true;
+        cond_data_ready.notify_all();
+    }
+    {
+        boost::unique_lock<boost::mutex> lock2(mut_data_ready);
+        while(data_ready)
         {
-            boost::lock_guard<boost::mutex> lock1(mut_data_ready);
-            data_ready=true;
-            cond_data_ready.notify_all();
-        }
-        {
-            boost::unique_lock<boost::mutex> lock2(mut_data_ready);
-            while(data_ready)
-            {
-                cond_data_ready.wait(lock2);
-            }
+            cond_data_ready.wait(lock2);
         }
     }
 }
