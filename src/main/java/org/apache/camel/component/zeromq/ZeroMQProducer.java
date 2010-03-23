@@ -78,11 +78,10 @@ public class ZeroMQProducer extends DefaultProducer {
     public final void process(Exchange exchange) {
         try {
             LOG.trace("Begin ZeroMQProducer.process");
-            Object obj = exchange.getIn().getBody();
-            ByteBuffer body = null;
-
-            if (obj instanceof ByteBuffer) {
-                body = (ByteBuffer) obj;
+            ByteBuffer body = exchange.getIn().getBody(ByteBuffer.class);
+            if (body == null) {
+                LOG.warn("No payload for exchange: " + exchange);
+            } else {
                 if (!body.isDirect()) {
                     ByteBuffer outBuffer;
                     outBuffer = ByteBuffer.allocateDirect(body.remaining());
@@ -90,17 +89,6 @@ public class ZeroMQProducer extends DefaultProducer {
                     outBuffer.flip();
                     body = outBuffer;
                 }
-            }
-
-            if (obj instanceof String) {
-                ByteBuffer buffer = ByteBuffer.allocateDirect(((String) obj).length() * 2);
-                buffer.asCharBuffer().put((String) obj);
-                body = buffer;
-            }
-
-            if (body == null) {
-                LOG.warn("No payload for exchange: " + exchange);
-            } else {
                 zeroMQSupport.send(body);
             }
         } catch (Exception ex) {
