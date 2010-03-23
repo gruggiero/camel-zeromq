@@ -14,50 +14,55 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <iostream>
 #include "zeromq_support.h"
+#include <zmq.hpp>
+
+using namespace std;
+using namespace std::tr1;
+using namespace boost;
+using namespace zmq;
 
 class run
 {
 
-    ZeroMQSupport* support;
+    ZeroMQSupport& support;
     
-    zmq::socket_t* socket;
+    shared_ptr<socket_t> socket;
 
-    std::string uri;
+    string uri;
 
 public:
 
-    run(ZeroMQSupport* support, zmq::socket_t* socket, const std::string& uri) : support(support), socket(socket), uri(uri) {
+    run(ZeroMQSupport& support, const shared_ptr<socket_t>& socket, const string& uri) : support(support), socket(socket), uri(uri) {
     }
 
     void operator()() {
         socket->bind(uri.c_str());
         while(true) {
-            zmq::message_t msg;
+            message_t msg;
             while(!socket->recv(&msg, ZMQ_NOBLOCK)) {
-                boost::this_thread::interruption_point();
+                this_thread::interruption_point();
             }
-            support->put(msg.data(), msg.size());
+            support.put(msg.data(), msg.size());
         }
     }
 };
 
 
-ZeroMQSupport::ZeroMQSupport() : socket(NULL) {
+ZeroMQSupport::ZeroMQSupport() {
 }
 
 ZeroMQSupport::~ZeroMQSupport() {
 }
 
 void ZeroMQSupport::send(void * buffer, long size) {
-    zmq::message_t msg(size);
+    message_t msg(size);
     memcpy(msg.data(), buffer, size);
     socket->send(msg);
 }
 
 long ZeroMQSupport::waitForMessage() {
-    boost::unique_lock<boost::mutex> lock(mut_data_ready);
+    unique_lock<mutex> lock(mut_data_ready);
     while(!data_ready)
     {
         cond_data_ready.wait(lock);
@@ -72,7 +77,7 @@ void ZeroMQSupport::copy(void * buffer, long size) {
     this->buffer = NULL;
     this->size = -1;
 
-    boost::lock_guard<boost::mutex> lock(mut_data_ready);
+    lock_guard<mutex> lock(mut_data_ready);
     data_ready = false;
     cond_data_ready.notify_one();
 }
@@ -81,12 +86,12 @@ void ZeroMQSupport::put(void * buffer, long size) {
     this->buffer = buffer;
     this->size = size;
     {
-        boost::lock_guard<boost::mutex> lock1(mut_data_ready);
+        lock_guard<mutex> lock1(mut_data_ready);
         data_ready=true;
         cond_data_ready.notify_all();
     }
     {
-        boost::unique_lock<boost::mutex> lock2(mut_data_ready);
+        unique_lock<mutex> lock2(mut_data_ready);
         while(data_ready)
         {
             cond_data_ready.wait(lock2);
@@ -94,11 +99,11 @@ void ZeroMQSupport::put(void * buffer, long size) {
     }
 }
 
-void ZeroMQSupport::start(const std::string& uri, const std::map<std::string, std::string>& properties, bool consumer) {
-    ctx = new zmq::context_t(1, 1);
-    socket = new zmq::socket_t(*ctx, ZMQ_P2P);
+void ZeroMQSupport::start(const string& uri, const map<string, string>& properties, bool consumer) {
+    ctx = shared_ptr<context_t>(new context_t(1, 1));
+    socket = shared_ptr<socket_t>(new socket_t(*ctx, ZMQ_P2P));
     if(consumer) {
-        run callable(this, socket, uri);
+        run callable(*this, socket, uri);
         this->thread = boost::thread(callable);
     } else {
         socket->connect(uri.c_str());
@@ -109,13 +114,11 @@ void ZeroMQSupport::stop() {
     if(consumer) {
         this->thread.interrupt();
         {
-            boost::lock_guard<boost::mutex> lock1(mut_data_ready);
+            lock_guard<mutex> lock1(mut_data_ready);
             data_ready=true;
             this->size = -1;
             cond_data_ready.notify_one();
         }
     }
-    delete ctx;
-    delete socket;
 }
 

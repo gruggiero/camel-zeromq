@@ -19,10 +19,16 @@
 
 #ifndef SWIG
 #include <boost/thread.hpp>
+#include <boost/tr1/memory.hpp>
 #include <string>
 #include <map>
-#include <zmq.hpp>
 #endif
+
+namespace zmq {
+    class context_t;
+    class socket_t;
+}
+
 
 class ZeroMQSupport {
 
@@ -32,13 +38,11 @@ class ZeroMQSupport {
     boost::condition_variable cond_data_ready;
     boost::mutex mut_data_ready;
     bool data_ready;
-
-    zmq::context_t* ctx;
-
-    zmq::socket_t* socket;
+    bool consumer;
     boost::thread thread;
 
-    bool consumer;
+    std::tr1::shared_ptr<zmq::context_t> ctx;
+    std::tr1::shared_ptr<zmq::socket_t> socket;
 
 public:
 
