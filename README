@@ -1,0 +1,2 @@
+This is a Camel components supporting the ZeroMQ library. It's also an attempt to show how to integrate Camel with any native library/transport.
+For compiling this component you need to install cmake (http://www.cmake.org) and swig (http://www.swig.org).
