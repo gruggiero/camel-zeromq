@@ -88,7 +88,7 @@ void ZeroMQSupport::put(void * buffer, long size) {
     {
         lock_guard<mutex> lock1(mut_data_ready);
         data_ready=true;
-        cond_data_ready.notify_all();
+        cond_data_ready.notify_one();
     }
     {
         unique_lock<mutex> lock2(mut_data_ready);
