@@ -62,7 +62,6 @@ public class ZeroMQProducer extends DefaultProducer {
         }
     }
 
-    @Override
     protected final void doStop() {
         try {
             LOG.trace("Begin ZeroMQProducer.doStop");
