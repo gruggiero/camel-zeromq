@@ -31,7 +31,7 @@
     <artifactId>camel-zeromq</artifactId>
     <packaging>bundle</packaging>
     <name>Camel :: ZeroMQ</name>
-    <description>Camel Native support</description>
+    <description>Camel ZeroMQ support</description>
 
     <properties>
         <camel.osgi.export.pkg>org.apache.camel.component.zeromq.*</camel.osgi.export.pkg>
@@ -162,7 +162,7 @@
                                 <phase>process-resources</phase>
                                 <configuration>
                                     <tasks>
-                                        <move todir="${basedir}/target/generated-sources/swig/org/apache/camel/component/nativesupport">
+                                        <move todir="${basedir}/target/generated-sources/swig/org/apache/camel/component/zeromq">
                                             <fileset dir="${basedir}/src/main/cpp">
                                                 <include name="*.java"/>
                                             </fileset>
