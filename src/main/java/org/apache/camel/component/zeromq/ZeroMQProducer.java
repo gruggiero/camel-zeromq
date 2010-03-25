@@ -73,7 +73,6 @@ public class ZeroMQProducer extends DefaultProducer {
         }
     }
 
-    @Override
     public final void process(Exchange exchange) {
         try {
             LOG.trace("Begin ZeroMQProducer.process");
