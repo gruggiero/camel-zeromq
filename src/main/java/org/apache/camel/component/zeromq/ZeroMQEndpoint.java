@@ -63,7 +63,6 @@ public class ZeroMQEndpoint extends DefaultEndpoint implements ManagementAware<Z
         }
     }
 
-    @Override
     public final Consumer createConsumer(Processor processor) {
         try {
             LOG.trace("Begin ZeroMQEndpoint.createConsumer");
@@ -79,7 +78,6 @@ public class ZeroMQEndpoint extends DefaultEndpoint implements ManagementAware<Z
         }
     }
 
-    @Override
     public final Producer createProducer() {
         try {
             LOG.trace("Begin ZeroMQEndpoint.createProducer");
@@ -100,7 +98,6 @@ public class ZeroMQEndpoint extends DefaultEndpoint implements ManagementAware<Z
         return true;
     }
 
-    @Override
     @ManagedAttribute
     public final boolean isSingleton() {
         return true;
@@ -115,7 +112,6 @@ public class ZeroMQEndpoint extends DefaultEndpoint implements ManagementAware<Z
         return producer;
     }
 
-    @Override
     public final Object getManagedObject(ZeroMQEndpoint endpoint) {
         return this;
     }
