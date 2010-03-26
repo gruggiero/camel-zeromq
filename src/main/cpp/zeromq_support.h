@@ -33,7 +33,7 @@ namespace zmq {
 class ZeroMQSupport {
 
     void * buffer;
-    long size;
+    int size;
 
     boost::condition_variable cond_data_ready;
     boost::mutex mut_data_ready;
@@ -52,7 +52,7 @@ public:
 
 	void send(char * BYTE, long size);
 
-    long waitForMessage();
+    int waitForMessage();
 
 	void copy(char * BYTE, long size);
 

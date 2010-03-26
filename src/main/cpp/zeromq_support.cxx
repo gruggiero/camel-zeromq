@@ -62,7 +62,7 @@ void ZeroMQSupport::send(char * buffer, long size) {
     socket->send(msg);
 }
 
-long ZeroMQSupport::waitForMessage() {
+int ZeroMQSupport::waitForMessage() {
     unique_lock<mutex> lock(mut_data_ready);
     while(!data_ready)
     {

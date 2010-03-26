@@ -34,7 +34,7 @@ public class ZeroMQComponentTest extends CamelTestSupport {
     @Test
     public void testConsumer() throws Exception {
 
-        int size = 1;
+        int size = 100000;
 
         final CountDownLatch count = new CountDownLatch(size);
 
@@ -44,7 +44,7 @@ public class ZeroMQComponentTest extends CamelTestSupport {
                 from("zeromq:tcp://lo0:8000?p1=v1&p2=v2").process(new Processor() {
                     public void process(Exchange exchange) throws Exception {
                         byte[] buffer = (byte[]) exchange.getIn().getBody();
-                        System.out.println(exchange.getIn().getBody(String.class));
+                        //System.out.println(exchange.getIn().getBody(String.class));
                         count.countDown();
                     }
                 });
