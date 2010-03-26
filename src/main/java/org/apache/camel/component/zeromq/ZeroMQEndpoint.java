@@ -47,20 +47,10 @@ public class ZeroMQEndpoint extends DefaultEndpoint implements ManagementAware<Z
 
     public ZeroMQEndpoint(String endpointUri, String remaining, Map parameters, CamelContext context) {
         super(endpointUri, context);
+        LOG.trace("Begin ZeroMQEndpoint.ZeroMQEndpoint");
         this.zeroMQURI = remaining;
         this.zeroMQProperties = parameters;
-        LOG.trace("Begin ZeroMQEndpoint.ZeroMQEndpoint");
-        try {
-            try {
-                NativeLibraryLoader.loadLibrary("zeromq_support");
-            } catch (java.io.IOException e) {
-                System.loadLibrary("zeromq_support");
-            }
-        } catch (Exception ex) {
-            LOG.fatal(ex, ex);
-        } finally {
-            LOG.trace("End HdfsEndpoint.HdfsEndpoint");
-        }
+        LOG.trace("End ZeroMQEndpoint.ZeroMQEndpoint");
     }
 
     public final Consumer createConsumer(Processor processor) {
@@ -107,7 +97,7 @@ public class ZeroMQEndpoint extends DefaultEndpoint implements ManagementAware<Z
     public final ZeroMQConsumer getConsumer() {
         return consumer;
     }
-    
+
     public final ZeroMQProducer getProducer() {
         return producer;
     }

@@ -30,14 +30,35 @@ public class ZeroMQComponent extends DefaultComponent {
 
     private static final transient Log LOG = LogFactory.getLog(ZeroMQComponent.class);
 
-
     public ZeroMQComponent() {
+        LOG.trace("Begin ZeroMQComponent.ZeroMQComponent");
+        try {
+            try {
+                NativeLibraryLoader.loadLibrary("zeromq_support");
+            } catch (java.io.IOException e) {
+                System.loadLibrary("zeromq_support");
+            }
+        } catch (Exception ex) {
+            LOG.fatal(ex, ex);
+        } finally {
+            LOG.trace("End ZeroMQComponent.ZeroMQComponent");
+        }
     }
 
     public ZeroMQComponent(CamelContext context) {
         super(context);
         LOG.trace("Begin ZeroMQComponent.ZeroMQComponent");
-        LOG.trace("End ZeroMQComponent.ZeroMQComponent");
+        try {
+            try {
+                NativeLibraryLoader.loadLibrary("zeromq_support");
+            } catch (java.io.IOException e) {
+                System.loadLibrary("zeromq_support");
+            }
+        } catch (Exception ex) {
+            LOG.fatal(ex, ex);
+        } finally {
+            LOG.trace("End ZeroMQComponent.ZeroMQComponent");
+        }
     }
 
     @Override
