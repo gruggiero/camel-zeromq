@@ -23,7 +23,6 @@ import org.apache.camel.impl.DefaultProducer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import java.nio.ByteBuffer;
 import java.util.Map;
 
 public class ZeroMQProducer extends DefaultProducer {
@@ -76,18 +75,11 @@ public class ZeroMQProducer extends DefaultProducer {
     public final void process(Exchange exchange) {
         try {
             LOG.trace("Begin ZeroMQProducer.process");
-            ByteBuffer body = exchange.getIn().getBody(ByteBuffer.class);
+            byte[] body = exchange.getIn().getBody(byte[].class);
             if (body == null) {
                 LOG.warn("No payload for exchange: " + exchange);
             } else {
-                if (!body.isDirect()) {
-                    ByteBuffer outBuffer;
-                    outBuffer = ByteBuffer.allocateDirect(body.capacity());
-                    outBuffer.put(body);
-                    outBuffer.flip();
-                    body = outBuffer;
-                }
-                zeroMQSupport.send(body);
+                zeroMQSupport.send(body, body.length);
             }
         } catch (Exception ex) {
             LOG.fatal(ex, ex);

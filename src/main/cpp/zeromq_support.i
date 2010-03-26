@@ -23,6 +23,7 @@
 %include exception.i
 %include "std_string.i"
 %include "std_map.i"
+%include "various.i"
 
 namespace std {
     %template(Properties) map<string, string>; 

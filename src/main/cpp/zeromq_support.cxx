@@ -16,6 +16,7 @@
  */
 #include "zeromq_support.h"
 #include <zmq.hpp>
+#include <iostream>
 
 using namespace std;
 using namespace std::tr1;
@@ -55,7 +56,7 @@ ZeroMQSupport::ZeroMQSupport() {
 ZeroMQSupport::~ZeroMQSupport() {
 }
 
-void ZeroMQSupport::send(void * buffer, long size) {
+void ZeroMQSupport::send(char * buffer, long size) {
     message_t msg(size);
     memcpy(msg.data(), buffer, size);
     socket->send(msg);
@@ -71,7 +72,7 @@ long ZeroMQSupport::waitForMessage() {
     return size;
 }
 
-void ZeroMQSupport::copy(void * buffer, long size) {
+void ZeroMQSupport::copy(char * buffer, long size) {
     memcpy(buffer, this->buffer, size);
 
     this->buffer = NULL;

@@ -22,7 +22,6 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
 
-import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
 
 public class ZeroMQComponentTest extends CamelTestSupport {
@@ -44,8 +43,8 @@ public class ZeroMQComponentTest extends CamelTestSupport {
             public void configure() {
                 from("zeromq:tcp://lo0:8000?p1=v1&p2=v2").process(new Processor() {
                     public void process(Exchange exchange) throws Exception {
-                        ByteBuffer buffer = (ByteBuffer) exchange.getIn().getBody();
-                        System.out.println(buffer.asCharBuffer().subSequence(0, buffer.capacity() / 2).toString());
+                        byte[] buffer = (byte[]) exchange.getIn().getBody();
+                        System.out.println(exchange.getIn().getBody(String.class));
                         count.countDown();
                     }
                 });
@@ -57,10 +56,7 @@ public class ZeroMQComponentTest extends CamelTestSupport {
 
         long start = System.currentTimeMillis();
         for (int i = 0; i < size; ++i) {
-            String str = new String("Hello David");
-            ByteBuffer buffer = ByteBuffer.allocateDirect(str.length() * 2);
-            buffer.asCharBuffer().put(str);
-            this.template.sendBody("zeromq:tcp://localhost:8000?p1=v1&p2=v2", buffer);
+            this.template.sendBody("zeromq:tcp://localhost:8000?p1=v1&p2=v2", "CIAO DAVID");
         }
 
         count.await();

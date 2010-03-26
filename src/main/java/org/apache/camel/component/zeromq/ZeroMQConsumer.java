@@ -17,14 +17,12 @@
 package org.apache.camel.component.zeromq;
 
 import org.apache.camel.*;
-import org.apache.camel.component.zeromq.ZeroMQSupport;
 import org.apache.camel.impl.DefaultConsumer;
 import org.apache.camel.impl.DefaultEndpoint;
 import org.apache.camel.impl.DefaultMessage;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import java.nio.ByteBuffer;
 import java.util.Map;
 
 public final class ZeroMQConsumer extends DefaultConsumer {
@@ -107,8 +105,8 @@ class PollingThread extends Thread {
             while (!stop) {
                 int size = zeroMQSupport.waitForMessage();
                 if (size != -1) {
-                    ByteBuffer buffer = ByteBuffer.allocateDirect(size);
-                    zeroMQSupport.copy(buffer);
+                    byte[] buffer = new byte[size];
+                    zeroMQSupport.copy(buffer, size);
                     Exchange exchange = endpoint.createExchange();
                     Message message = new DefaultMessage();
                     message.setBody(buffer);
