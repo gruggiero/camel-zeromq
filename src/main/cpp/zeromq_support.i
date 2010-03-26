@@ -39,19 +39,4 @@ namespace std {
 	}
 }
 
-%typemap(in) (void *buffer, long size) {
-  /* %typemap(in) void * */
-  $1 = jenv->GetDirectBufferAddress($input);
-  $2 = (long)(jenv->GetDirectBufferCapacity($input));
-}
-
-/* These 3 typemaps tell SWIG what JNI and Java types to use */
-%typemap(jni) (void *buffer, long size) "jobject"
-%typemap(jtype) (void *buffer, long size) "java.nio.ByteBuffer"
-%typemap(jstype) (void *buffer, long size) "java.nio.ByteBuffer"
-%typemap(javain) (void *buffer, long size) "$javainput"
-%typemap(javaout) (void *buffer, long size) {
-    return $jnicall;
-}
-
 #include "zeromq_support.h"

@@ -16,7 +16,6 @@
  */
 #include "zeromq_support.h"
 #include <zmq.hpp>
-#include <iostream>
 
 using namespace std;
 using namespace std::tr1;

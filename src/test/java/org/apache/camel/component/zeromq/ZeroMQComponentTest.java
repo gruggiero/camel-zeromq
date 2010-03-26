@@ -56,7 +56,7 @@ public class ZeroMQComponentTest extends CamelTestSupport {
 
         long start = System.currentTimeMillis();
         for (int i = 0; i < size; ++i) {
-            this.template.sendBody("zeromq:tcp://localhost:8000?p1=v1&p2=v2", "CIAO DAVID");
+            this.template.sendBody("zeromq:tcp://localhost:8000?p1=v1&p2=v2", new byte[1024]);
         }
 
         count.await();
