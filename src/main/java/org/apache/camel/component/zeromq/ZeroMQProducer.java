@@ -82,7 +82,7 @@ public class ZeroMQProducer extends DefaultProducer {
             } else {
                 if (!body.isDirect()) {
                     ByteBuffer outBuffer;
-                    outBuffer = ByteBuffer.allocateDirect(body.remaining());
+                    outBuffer = ByteBuffer.allocateDirect(body.capacity());
                     outBuffer.put(body);
                     outBuffer.flip();
                     body = outBuffer;
