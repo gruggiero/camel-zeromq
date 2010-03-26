@@ -55,7 +55,7 @@ ZeroMQSupport::ZeroMQSupport() {
 ZeroMQSupport::~ZeroMQSupport() {
 }
 
-void ZeroMQSupport::send(char * buffer, long size) {
+void ZeroMQSupport::send(char * buffer, int size) {
     message_t msg(size);
     memcpy(msg.data(), buffer, size);
     socket->send(msg);
@@ -71,7 +71,7 @@ int ZeroMQSupport::waitForMessage() {
     return size;
 }
 
-void ZeroMQSupport::copy(char * buffer, long size) {
+void ZeroMQSupport::copy(char * buffer, int size) {
     memcpy(buffer, this->buffer, size);
 
     this->buffer = NULL;
@@ -82,7 +82,7 @@ void ZeroMQSupport::copy(char * buffer, long size) {
     cond_data_ready.notify_one();
 }
 
-void ZeroMQSupport::put(void * buffer, long size) {
+void ZeroMQSupport::put(void * buffer, int size) {
     this->buffer = buffer;
     this->size = size;
     {

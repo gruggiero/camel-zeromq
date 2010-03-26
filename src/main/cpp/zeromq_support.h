@@ -50,17 +50,17 @@ public:
 
 	~ZeroMQSupport();
 
-	void send(char * BYTE, long size);
+	void send(char * BYTE, int size);
 
     int waitForMessage();
 
-	void copy(char * BYTE, long size);
+	void copy(char * BYTE, int size);
 
 	void start(const std::string& uri, const std::map<std::string, std::string>& properties, bool consumer);
 
 	void stop();
 
-	void put(void * buffer, long size);
+	void put(void * buffer, int size);
 
 };
 
