@@ -41,7 +41,7 @@ public class ZeroMQComponentTest extends CamelTestSupport {
         context.addRoutes(new RouteBuilder() {
             @Override
             public void configure() {
-                from("zeromq:tcp://lo0:8000?p1=v1&p2=v2").process(new Processor() {
+                from("zeromq:tcp://127.0.0.1:8000?p1=v1&p2=v2").process(new Processor() {
                     public void process(Exchange exchange) throws Exception {
                         byte[] buffer = (byte[]) exchange.getIn().getBody();
                         //System.out.println(exchange.getIn().getBody(String.class));
@@ -56,7 +56,7 @@ public class ZeroMQComponentTest extends CamelTestSupport {
 
         long start = System.currentTimeMillis();
         for (int i = 0; i < size; ++i) {
-            this.template.sendBody("zeromq:tcp://localhost:8000?p1=v1&p2=v2", new byte[1024]);
+            this.template.sendBody("zeromq:tcp://127.0.0.1:8000?p1=v1&p2=v2", new byte[1024]);
         }
 
         count.await();
