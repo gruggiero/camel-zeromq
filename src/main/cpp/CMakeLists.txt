@@ -16,8 +16,6 @@
 #
 cmake_minimum_required(VERSION 2.8)
 
-message("${CMAKE_HOST_SYSTEM_NAME}")
-
 if(NOT ZEROMQ_PREFIX)
     if(ENV{ZEROMQ_PREFIX})
         set(PICOORB_ROOT $ENV{ZEROMQ_PREFIX})
