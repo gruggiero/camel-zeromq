@@ -29,7 +29,7 @@ public class ZeroMQProducer extends DefaultProducer {
 
     private static final transient Log LOG = LogFactory.getLog(ZeroMQProducer.class);
 
-    private ZeroMQSupport zeroMQSupport;
+    private ZeroMQProducerSupport zeroMQProducerSupport;
 
     public ZeroMQProducer(ZeroMQEndpoint endpoint) {
         super(endpoint);
@@ -49,8 +49,8 @@ public class ZeroMQProducer extends DefaultProducer {
                 Map.Entry e = (Map.Entry) obj;
                 params.set((String) e.getKey(), (String) e.getValue());
             }
-            zeroMQSupport = new ZeroMQSupport();
-            zeroMQSupport.start(((ZeroMQEndpoint) getEndpoint()).getZeroMQURI(), params, false);
+            zeroMQProducerSupport = new ZeroMQProducerSupport();
+            zeroMQProducerSupport.start(((ZeroMQEndpoint) getEndpoint()).getZeroMQURI(), params);
 
             super.doStart();
         } catch (Exception ex) {
@@ -64,7 +64,7 @@ public class ZeroMQProducer extends DefaultProducer {
     protected final void doStop() {
         try {
             LOG.trace("Begin ZeroMQProducer.doStop");
-            zeroMQSupport.stop();
+            zeroMQProducerSupport.stop();
         } catch (Exception ex) {
             throw new RuntimeCamelException(ex);
         } finally {
@@ -79,7 +79,7 @@ public class ZeroMQProducer extends DefaultProducer {
             if (body == null) {
                 LOG.warn("No payload for exchange: " + exchange);
             } else {
-                zeroMQSupport.send(body, body.length);
+                zeroMQProducerSupport.send(body, body.length);
             }
         } catch (Exception ex) {
             LOG.fatal(ex, ex);

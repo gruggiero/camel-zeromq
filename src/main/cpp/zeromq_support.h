@@ -29,17 +29,9 @@ namespace zmq {
     class socket_t;
 }
 
-
 class ZeroMQSupport {
 
-    void * buffer;
-    int size;
-
-    boost::condition_variable cond_data_ready;
-    boost::mutex mut_data_ready;
-    bool data_ready;
-    bool consumer;
-    boost::thread thread;
+protected:
 
     std::tr1::shared_ptr<zmq::context_t> ctx;
     std::tr1::shared_ptr<zmq::socket_t> socket;
@@ -50,17 +42,50 @@ public:
 
 	~ZeroMQSupport();
 
-	void send(char * BYTE, int size);
+};
+
+class ZeroMQConsumerSupport: public ZeroMQSupport {
+
+    void * buffer;
+    int size;
+
+    boost::condition_variable cond_data_ready;
+    boost::mutex mut_data_ready;
+    bool data_ready;
+    bool consumer;
+    boost::thread thread;
+
+public:
+
+    ZeroMQConsumerSupport();
+
+	~ZeroMQConsumerSupport();
+
+	void start(const std::string& uri, const std::map<std::string, std::string>& properties);
+
+	void stop();
 
     int waitForMessage();
 
 	void copy(char * BYTE, int size);
 
-	void start(const std::string& uri, const std::map<std::string, std::string>& properties, bool consumer);
+	void put(void * buffer, int size);
+
+};
+
+class ZeroMQProducerSupport: public ZeroMQSupport {
+
+public:
+
+    ZeroMQProducerSupport();
+
+	~ZeroMQProducerSupport();
+
+    void start(const std::string& uri, const std::map<std::string, std::string>& properties);
 
 	void stop();
 
-	void put(void * buffer, int size);
+	void send(char * BYTE, int size);
 
 };
 

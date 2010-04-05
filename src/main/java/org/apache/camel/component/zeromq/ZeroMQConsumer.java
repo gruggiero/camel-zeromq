@@ -29,16 +29,17 @@ public final class ZeroMQConsumer extends DefaultConsumer {
 
     private static final transient Log LOG = LogFactory.getLog(ZeroMQConsumer.class);
 
-    private ZeroMQSupport zeroMQSupport;
+    private ZeroMQConsumerSupport zeroMQConsumerSupport;
 
-    private PollingThread pollingThread;
+    private PollingThread pollingThread1;
+    private PollingThread pollingThread2;
 
     public ZeroMQConsumer(DefaultEndpoint endpoint, Processor processor) {
         super(endpoint, processor);
     }
 
     public ZeroMQSupport getZeroMQSupport() {
-        return zeroMQSupport;
+        return zeroMQConsumerSupport;
     }
 
     @Override
@@ -50,10 +51,12 @@ public final class ZeroMQConsumer extends DefaultConsumer {
                 Map.Entry e = (Map.Entry) obj;
                 params.set((String) e.getKey(), (String) e.getValue());
             }
-            zeroMQSupport = new ZeroMQSupport();
-            zeroMQSupport.start(((ZeroMQEndpoint) getEndpoint()).getZeroMQURI(), params, true);
-            pollingThread = new PollingThread(getEndpoint(), getProcessor(), zeroMQSupport);
-            pollingThread.start();
+            zeroMQConsumerSupport = new ZeroMQConsumerSupport();
+            zeroMQConsumerSupport.start(((ZeroMQEndpoint) getEndpoint()).getZeroMQURI(), params);
+            pollingThread1 = new PollingThread(getEndpoint(), getProcessor(), zeroMQConsumerSupport);
+            pollingThread1.start();
+            //pollingThread2 = new PollingThread(getEndpoint(), getProcessor(), zeroMQConsumerSupport);
+            //pollingThread2.start();
             super.doStart();
         } catch (Exception ex) {
             LOG.fatal(ex, ex);
@@ -67,9 +70,11 @@ public final class ZeroMQConsumer extends DefaultConsumer {
     protected void doStop() {
         try {
             LOG.trace("Begin ZeroMQConsumer.doStop");
-            zeroMQSupport.stop();
-            pollingThread.end();
-            pollingThread.join();
+            zeroMQConsumerSupport.stop();
+            pollingThread1.end();
+            pollingThread1.join();
+            //pollingThread2.end();
+            //pollingThread2.join();            
             super.doStop();
         } catch (InterruptedException ex) {
 
@@ -90,23 +95,23 @@ class PollingThread extends Thread {
 
     private final Endpoint endpoint;
     private final Processor processor;
-    private final ZeroMQSupport zeroMQSupport;
+    private final ZeroMQConsumerSupport zeroMQConsumerSupport;
 
-    PollingThread(Endpoint endpoint, Processor processor, ZeroMQSupport zeroMQSupport) {
+    PollingThread(Endpoint endpoint, Processor processor, ZeroMQConsumerSupport zeroMQConsumerSupport) {
         setDaemon(true);
         this.endpoint = endpoint;
         this.processor = processor;
-        this.zeroMQSupport = zeroMQSupport;
+        this.zeroMQConsumerSupport = zeroMQConsumerSupport;
     }
 
     @Override
     public void run() {
         try {
             while (!stop) {
-                int size = zeroMQSupport.waitForMessage();
+                int size = zeroMQConsumerSupport.waitForMessage();
                 if (size != -1) {
                     byte[] buffer = new byte[size];
-                    zeroMQSupport.copy(buffer, size);
+                    zeroMQConsumerSupport.copy(buffer, size);
                     Exchange exchange = endpoint.createExchange();
                     Message message = new DefaultMessage();
                     message.setBody(buffer);

@@ -25,7 +25,7 @@ using namespace zmq;
 class run
 {
 
-    ZeroMQSupport& support;
+    ZeroMQConsumerSupport& support;
     
     shared_ptr<socket_t> socket;
 
@@ -33,7 +33,7 @@ class run
 
 public:
 
-    run(ZeroMQSupport& support, const shared_ptr<socket_t>& socket, const string& uri) : support(support), socket(socket), uri(uri) {
+    run(ZeroMQConsumerSupport& support, const shared_ptr<socket_t>& socket, const string& uri) : support(support), socket(socket), uri(uri) {
     }
 
     void operator()() {
@@ -48,20 +48,36 @@ public:
     }
 };
 
-
 ZeroMQSupport::ZeroMQSupport() {
 }
 
 ZeroMQSupport::~ZeroMQSupport() {
 }
 
-void ZeroMQSupport::send(char * buffer, int size) {
-    message_t msg(size);
-    memcpy(msg.data(), buffer, size);
-    socket->send(msg);
+ZeroMQConsumerSupport::ZeroMQConsumerSupport() {
 }
 
-int ZeroMQSupport::waitForMessage() {
+ZeroMQConsumerSupport::~ZeroMQConsumerSupport() {
+}
+
+void ZeroMQConsumerSupport::start(const string& uri, const map<string, string>& properties) {
+    ctx = shared_ptr<context_t>(new context_t(1, 1));
+    socket = shared_ptr<socket_t>(new socket_t(*ctx, ZMQ_P2P));
+    run callable(*this, socket, uri);
+    this->thread = boost::thread(callable);
+}
+
+void ZeroMQConsumerSupport::stop() {
+    this->thread.interrupt();
+    {
+        lock_guard<mutex> lock1(mut_data_ready);
+        data_ready=true;
+        this->size = -1;
+        cond_data_ready.notify_one();
+    }
+}
+
+int ZeroMQConsumerSupport::waitForMessage() {
     unique_lock<mutex> lock(mut_data_ready);
     while(!data_ready)
     {
@@ -71,7 +87,7 @@ int ZeroMQSupport::waitForMessage() {
     return size;
 }
 
-void ZeroMQSupport::copy(char * buffer, int size) {
+void ZeroMQConsumerSupport::copy(char * buffer, int size) {
     memcpy(buffer, this->buffer, size);
 
     this->buffer = NULL;
@@ -82,7 +98,7 @@ void ZeroMQSupport::copy(char * buffer, int size) {
     cond_data_ready.notify_one();
 }
 
-void ZeroMQSupport::put(void * buffer, int size) {
+void ZeroMQConsumerSupport::put(void * buffer, int size) {
     this->buffer = buffer;
     this->size = size;
     {
@@ -99,26 +115,24 @@ void ZeroMQSupport::put(void * buffer, int size) {
     }
 }
 
-void ZeroMQSupport::start(const string& uri, const map<string, string>& properties, bool consumer) {
-    ctx = shared_ptr<context_t>(new context_t(1, 1));
-    socket = shared_ptr<socket_t>(new socket_t(*ctx, ZMQ_P2P));
-    if(consumer) {
-        run callable(*this, socket, uri);
-        this->thread = boost::thread(callable);
-    } else {
-        socket->connect(uri.c_str());
-    }
+ZeroMQProducerSupport::ZeroMQProducerSupport() {
 }
 
-void ZeroMQSupport::stop() {
-    if(consumer) {
-        this->thread.interrupt();
-        {
-            lock_guard<mutex> lock1(mut_data_ready);
-            data_ready=true;
-            this->size = -1;
-            cond_data_ready.notify_one();
-        }
-    }
+ZeroMQProducerSupport::~ZeroMQProducerSupport() {
+}
+
+void ZeroMQProducerSupport::start(const string& uri, const map<string, string>& properties) {
+    ctx = shared_ptr<context_t>(new context_t(1, 1));
+    socket = shared_ptr<socket_t>(new socket_t(*ctx, ZMQ_P2P));
+    socket->connect(uri.c_str());
+}
+
+void ZeroMQProducerSupport::stop() {
+}
+
+void ZeroMQProducerSupport::send(char * buffer, int size) {
+    message_t msg(size);
+    memcpy(msg.data(), buffer, size);
+    socket->send(msg);
 }
 
