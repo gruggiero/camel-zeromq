@@ -31,8 +31,7 @@ public final class ZeroMQConsumer extends DefaultConsumer {
 
     private ZeroMQConsumerSupport zeroMQConsumerSupport;
 
-    private PollingThread pollingThread1;
-    private PollingThread pollingThread2;
+    private PollingThread pollingThread;
 
     public ZeroMQConsumer(DefaultEndpoint endpoint, Processor processor) {
         super(endpoint, processor);
@@ -53,10 +52,8 @@ public final class ZeroMQConsumer extends DefaultConsumer {
             }
             zeroMQConsumerSupport = new ZeroMQConsumerSupport();
             zeroMQConsumerSupport.start(((ZeroMQEndpoint) getEndpoint()).getZeroMQURI(), params);
-            pollingThread1 = new PollingThread(getEndpoint(), getProcessor(), zeroMQConsumerSupport);
-            pollingThread1.start();
-            //pollingThread2 = new PollingThread(getEndpoint(), getProcessor(), zeroMQConsumerSupport);
-            //pollingThread2.start();
+            pollingThread = new PollingThread(getEndpoint(), getProcessor(), zeroMQConsumerSupport);
+            pollingThread.start();
             super.doStart();
         } catch (Exception ex) {
             LOG.fatal(ex, ex);
@@ -71,10 +68,8 @@ public final class ZeroMQConsumer extends DefaultConsumer {
         try {
             LOG.trace("Begin ZeroMQConsumer.doStop");
             zeroMQConsumerSupport.stop();
-            pollingThread1.end();
-            pollingThread1.join();
-            //pollingThread2.end();
-            //pollingThread2.join();            
+            pollingThread.end();
+            pollingThread.join();           
             super.doStop();
         } catch (InterruptedException ex) {
 
