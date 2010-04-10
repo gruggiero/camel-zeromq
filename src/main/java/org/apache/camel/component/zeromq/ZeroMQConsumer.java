@@ -29,11 +29,14 @@ public final class ZeroMQConsumer extends DefaultConsumer {
 
     private static final transient Log LOG = LogFactory.getLog(ZeroMQConsumer.class);
 
-    private final int NUMPOLLERS = 1;
+    private final int NUMPOLLERS = 8;
+
     private PollingThread[] pollingThreads = new PollingThread[NUMPOLLERS];
+    private final Processor processor;
 
     public ZeroMQConsumer(DefaultEndpoint endpoint, Processor processor) {
         super(endpoint, processor);
+        this.processor = processor;
     }
 
     @Override
@@ -42,7 +45,8 @@ public final class ZeroMQConsumer extends DefaultConsumer {
             LOG.trace("Begin ZeroMQConsumer.doStart");
             super.doStart();
             for (int i = 0; i < NUMPOLLERS; ++i) {
-                pollingThreads[i] = new PollingThread(getEndpoint(), getProcessor());
+                pollingThreads[i] = new PollingThread(getEndpoint(), processor);
+                pollingThreads[i].setDaemon(true);
                 pollingThreads[i].start();
             }
         } catch (Exception ex) {
@@ -58,6 +62,7 @@ public final class ZeroMQConsumer extends DefaultConsumer {
         try {
             LOG.trace("Begin ZeroMQConsumer.doStop");
             for (int i = 0; i < NUMPOLLERS; ++i) {
+                pollingThreads[i].interrupt();
                 pollingThreads[i].end();
                 pollingThreads[i].join();
             }
@@ -100,7 +105,7 @@ class PollingThread extends Thread {
             }
             zeroMQConsumerSupport.start(((ZeroMQEndpoint) endpoint).getZeroMQURI(), params);
             while (!stop) {
-                int size = zeroMQConsumerSupport.waitForMessage();
+                int size = zeroMQConsumerSupport.receive();
                 if (size != -1) {
                     byte[] buffer = new byte[size];
                     zeroMQConsumerSupport.copy(buffer, size);
@@ -110,6 +115,8 @@ class PollingThread extends Thread {
                     exchange.setIn(message);
                     try {
                         processor.process(exchange);
+                    } catch (InterruptedException ex) {
+                        stop = true;
                     } catch (Exception ex) {
                         LOG.fatal(ex, ex);
                         throw new RuntimeCamelException(ex);

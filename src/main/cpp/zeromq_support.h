@@ -27,17 +27,10 @@
 namespace zmq {
     class context_t;
     class socket_t;
+    class message_t;
 }
 
 class ZeroMQSupport {
-
-friend class run;
-
-protected:
-
-    static boost::mutex mut_ctx_socket;
-    static std::tr1::shared_ptr<zmq::context_t> ctx;
-    static std::tr1::shared_ptr<zmq::socket_t> socket;
 
 public:
 
@@ -49,13 +42,14 @@ public:
 
 class ZeroMQConsumerSupport: public ZeroMQSupport {
 
-    void * buffer;
-    int size;
+protected:
 
-    boost::condition_variable cond_data_ready;
-    boost::mutex mut_data_ready;
-    bool data_ready;
-    boost::thread thread;
+    static boost::mutex mut_ctx_socket;
+    static std::tr1::shared_ptr<zmq::context_t> ctx;
+    static std::tr1::shared_ptr<zmq::socket_t> socket;
+
+    std::tr1::shared_ptr<zmq::message_t> message;
+    bool isStopped;
 
 public:
 
@@ -67,15 +61,19 @@ public:
 
 	void stop();
 
-    int waitForMessage();
+	int receive();
 
 	void copy(char * BYTE, int size);
-
-	void put(void * buffer, int size);
 
 };
 
 class ZeroMQProducerSupport: public ZeroMQSupport {
+
+protected:
+
+    static boost::mutex mut_ctx_socket;
+    static std::tr1::shared_ptr<zmq::context_t> ctx;
+    static std::tr1::shared_ptr<zmq::socket_t> socket;
 
 public:
 

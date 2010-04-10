@@ -34,36 +34,69 @@ public class ZeroMQComponentTest extends CamelTestSupport {
     @Test
     public void testProducerConsumer() throws Exception {
 
-        int size = 100000;
+        class TestRouteBuilder extends RouteBuilder {
 
-        final CountDownLatch count = new CountDownLatch(size);
+            private long start;
 
-        context.addRoutes(new RouteBuilder() {
+            private long stop;
+
+            private final CountDownLatch countDownLatch;
+
+            private final int size;
+
+            public TestRouteBuilder(CountDownLatch countDownLatch, int size) {
+                this.countDownLatch = countDownLatch;
+                this.size = size;
+            }
+
             @Override
-            public void configure() {
+            public void configure() throws Exception {
                 from("zeromq:tcp://127.0.0.1:8000?p1=v1&p2=v2").process(new Processor() {
                     public void process(Exchange exchange) throws Exception {
+                        if(countDownLatch.getCount() == size) {
+                            start = System.currentTimeMillis();
+                            System.out.println("start");
+                        }
                         byte[] buffer = (byte[]) exchange.getIn().getBody();
-                        count.countDown();
+                        countDownLatch.countDown();
+                        if(countDownLatch.getCount() == 0) {
+                            stop = System.currentTimeMillis();
+                            System.out.println("stop");
+                        }
                     }
                 });
             }
-        });
+
+            public long getStart() {
+                return start;
+            }
+
+            public long getStop() {
+                return stop;
+            }
+        }
+
+
+        int size = 100000;
+
+        CountDownLatch count = new CountDownLatch(size);
+
+        TestRouteBuilder builder = new TestRouteBuilder(count, size);
+
+        context.addRoutes(builder);
+
         context.start();
 
-        Thread.sleep(1000);
-
-        long start = System.currentTimeMillis();
         for (int i = 0; i < size; ++i) {
-            this.template.sendBody("zeromq:tcp://127.0.0.1:8000?p1=v1&p2=v2", new byte[1024]);
+           this.template.sendBody("zeromq:tcp://127.0.0.1:8000?p1=v1&p2=v2", new byte[1024]);
         }
 
         count.await();
-        long stop = System.currentTimeMillis();
 
-        System.out.println("done. " + (stop - start));
+        System.out.println("done. " + (builder.getStop() - builder.getStart()));
         context.stop();
     }
+
 
     @Test
     public void testProducerConsumerWithNetty() throws Exception {
@@ -98,6 +131,5 @@ public class ZeroMQComponentTest extends CamelTestSupport {
         System.out.println("done. " + (stop - start));
         context.stop();
     }
-
 
 }
