@@ -29,24 +29,17 @@ public final class ZeroMQConsumer extends DefaultConsumer {
 
     private static final transient Log LOG = LogFactory.getLog(ZeroMQConsumer.class);
 
-    private ZeroMQConsumerSupport zeroMQConsumerSupport;
-
     private PollingThread pollingThread;
 
     public ZeroMQConsumer(DefaultEndpoint endpoint, Processor processor) {
         super(endpoint, processor);
     }
 
-    public ZeroMQSupport getZeroMQSupport() {
-        return zeroMQConsumerSupport;
-    }
-
     @Override
     protected void doStart() {
         try {
             LOG.trace("Begin ZeroMQConsumer.doStart");
-            zeroMQConsumerSupport = new ZeroMQConsumerSupport();
-            pollingThread = new PollingThread(getEndpoint(), getProcessor(), zeroMQConsumerSupport);
+            pollingThread = new PollingThread(getEndpoint(), getProcessor());
             pollingThread.start();
             super.doStart();
         } catch (Exception ex) {
@@ -85,11 +78,11 @@ class PollingThread extends Thread {
     private final Processor processor;
     private final ZeroMQConsumerSupport zeroMQConsumerSupport;
 
-    PollingThread(Endpoint endpoint, Processor processor, ZeroMQConsumerSupport zeroMQConsumerSupport) {
+    PollingThread(Endpoint endpoint, Processor processor) {
         setDaemon(true);
         this.endpoint = endpoint;
         this.processor = processor;
-        this.zeroMQConsumerSupport = zeroMQConsumerSupport;
+        this.zeroMQConsumerSupport = new ZeroMQConsumerSupport();
     }
 
     @Override
