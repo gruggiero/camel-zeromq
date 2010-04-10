@@ -45,13 +45,7 @@ public final class ZeroMQConsumer extends DefaultConsumer {
     protected void doStart() {
         try {
             LOG.trace("Begin ZeroMQConsumer.doStart");
-            Properties params = new Properties();
-            for (Object obj : ((ZeroMQEndpoint) getEndpoint()).getZeroMQProperties().entrySet()) {
-                Map.Entry e = (Map.Entry) obj;
-                params.set((String) e.getKey(), (String) e.getValue());
-            }
             zeroMQConsumerSupport = new ZeroMQConsumerSupport();
-            zeroMQConsumerSupport.start(((ZeroMQEndpoint) getEndpoint()).getZeroMQURI(), params);
             pollingThread = new PollingThread(getEndpoint(), getProcessor(), zeroMQConsumerSupport);
             pollingThread.start();
             super.doStart();
@@ -67,9 +61,8 @@ public final class ZeroMQConsumer extends DefaultConsumer {
     protected void doStop() {
         try {
             LOG.trace("Begin ZeroMQConsumer.doStop");
-            zeroMQConsumerSupport.stop();
             pollingThread.end();
-            pollingThread.join();           
+            pollingThread.join();
             super.doStop();
         } catch (InterruptedException ex) {
 
@@ -102,6 +95,12 @@ class PollingThread extends Thread {
     @Override
     public void run() {
         try {
+            Properties params = new Properties();
+            for (Object obj : ((ZeroMQEndpoint) endpoint).getZeroMQProperties().entrySet()) {
+                Map.Entry e = (Map.Entry) obj;
+                params.set((String) e.getKey(), (String) e.getValue());
+            }
+            zeroMQConsumerSupport.start(((ZeroMQEndpoint) endpoint).getZeroMQURI(), params);
             while (!stop) {
                 int size = zeroMQConsumerSupport.waitForMessage();
                 if (size != -1) {
@@ -127,6 +126,7 @@ class PollingThread extends Thread {
     }
 
     public void end() {
+        zeroMQConsumerSupport.stop();
         stop = true;
     }
 }
