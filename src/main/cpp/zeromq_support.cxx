@@ -16,17 +16,22 @@
  */
 #include "zeromq_support.h"
 #include <zmq.hpp>
+#include <iostream>
 
 using namespace std;
 using namespace std::tr1;
 using namespace boost;
 using namespace zmq;
 
+mutex ZeroMQSupport::mut_ctx_socket;
+shared_ptr<zmq::context_t> ZeroMQSupport::ctx;
+shared_ptr<zmq::socket_t> ZeroMQSupport::socket;
+
 class run
 {
 
     ZeroMQConsumerSupport& support;
-    
+
     shared_ptr<socket_t> socket;
 
     string uri;
@@ -37,8 +42,8 @@ public:
     }
 
     void operator()() {
-        socket->bind(uri.c_str());
         while(true) {
+            lock_guard<mutex> lock(ZeroMQConsumerSupport::mut_ctx_socket);
             message_t msg;
             while(!socket->recv(&msg, ZMQ_NOBLOCK)) {
                 this_thread::interruption_point();
@@ -61,8 +66,15 @@ ZeroMQConsumerSupport::~ZeroMQConsumerSupport() {
 }
 
 void ZeroMQConsumerSupport::start(const string& uri, const map<string, string>& properties) {
-    ctx = shared_ptr<context_t>(new context_t(1, 1));
-    socket = shared_ptr<socket_t>(new socket_t(*ctx, ZMQ_P2P));
+    lock_guard<mutex> lock(mut_ctx_socket);
+
+    if(ctx.get() == 0) {} {
+        ctx.reset(new context_t(2, 2));
+    }
+    if(socket.get() == 0) {
+        socket.reset(new socket_t(*ctx, ZMQ_P2P));
+        socket->bind(uri.c_str());
+    }
     run callable(*this, socket, uri);
     this->thread = boost::thread(callable);
 }
@@ -88,21 +100,19 @@ int ZeroMQConsumerSupport::waitForMessage() {
 }
 
 void ZeroMQConsumerSupport::copy(char * buffer, int size) {
+    lock_guard<mutex> lock(mut_data_ready);
     memcpy(buffer, this->buffer, size);
-
     this->buffer = NULL;
     this->size = -1;
-
-    lock_guard<mutex> lock(mut_data_ready);
     data_ready = false;
     cond_data_ready.notify_one();
 }
 
 void ZeroMQConsumerSupport::put(void * buffer, int size) {
-    this->buffer = buffer;
-    this->size = size;
     {
         lock_guard<mutex> lock1(mut_data_ready);
+        this->buffer = buffer;
+        this->size = size;
         data_ready=true;
         cond_data_ready.notify_one();
     }
@@ -135,4 +145,3 @@ void ZeroMQProducerSupport::send(char * buffer, int size) {
     memcpy(msg.data(), buffer, size);
     socket->send(msg);
 }
-

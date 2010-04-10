@@ -31,10 +31,13 @@ namespace zmq {
 
 class ZeroMQSupport {
 
+friend class run;
+
 protected:
 
-    std::tr1::shared_ptr<zmq::context_t> ctx;
-    std::tr1::shared_ptr<zmq::socket_t> socket;
+    static boost::mutex mut_ctx_socket;
+    static std::tr1::shared_ptr<zmq::context_t> ctx;
+    static std::tr1::shared_ptr<zmq::socket_t> socket;
 
 public:
 
@@ -52,7 +55,6 @@ class ZeroMQConsumerSupport: public ZeroMQSupport {
     boost::condition_variable cond_data_ready;
     boost::mutex mut_data_ready;
     bool data_ready;
-    bool consumer;
     boost::thread thread;
 
 public:

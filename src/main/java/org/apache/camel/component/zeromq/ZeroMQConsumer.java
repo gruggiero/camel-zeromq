@@ -29,7 +29,8 @@ public final class ZeroMQConsumer extends DefaultConsumer {
 
     private static final transient Log LOG = LogFactory.getLog(ZeroMQConsumer.class);
 
-    private PollingThread pollingThread;
+    private final int NUMPOLLERS = 1;
+    private PollingThread[] pollingThreads = new PollingThread[NUMPOLLERS];
 
     public ZeroMQConsumer(DefaultEndpoint endpoint, Processor processor) {
         super(endpoint, processor);
@@ -39,9 +40,11 @@ public final class ZeroMQConsumer extends DefaultConsumer {
     protected void doStart() {
         try {
             LOG.trace("Begin ZeroMQConsumer.doStart");
-            pollingThread = new PollingThread(getEndpoint(), getProcessor());
-            pollingThread.start();
             super.doStart();
+            for (int i = 0; i < NUMPOLLERS; ++i) {
+                pollingThreads[i] = new PollingThread(getEndpoint(), getProcessor());
+                pollingThreads[i].start();
+            }
         } catch (Exception ex) {
             LOG.fatal(ex, ex);
             throw new RuntimeCamelException(ex);
@@ -54,8 +57,10 @@ public final class ZeroMQConsumer extends DefaultConsumer {
     protected void doStop() {
         try {
             LOG.trace("Begin ZeroMQConsumer.doStop");
-            pollingThread.end();
-            pollingThread.join();
+            for (int i = 0; i < NUMPOLLERS; ++i) {
+                pollingThreads[i].end();
+                pollingThreads[i].join();
+            }
             super.doStop();
         } catch (InterruptedException ex) {
 
@@ -115,7 +120,6 @@ class PollingThread extends Thread {
         catch (Exception ex) {
 
         }
-
     }
 
     public void end() {
