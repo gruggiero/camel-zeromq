@@ -30,13 +30,15 @@ public class ZeroMQComponent extends DefaultComponent {
 
     private static final transient Log LOG = LogFactory.getLog(ZeroMQComponent.class);
 
+    private static final String LIBNAME = "zeromq_support";
+
     public ZeroMQComponent() {
         LOG.trace("Begin ZeroMQComponent.ZeroMQComponent");
         try {
             try {
-                NativeLibraryLoader.loadLibrary("zeromq_support");
+                NativeLibraryLoader.loadLibrary(LIBNAME);
             } catch (java.io.IOException e) {
-                System.loadLibrary("zeromq_support");
+                System.loadLibrary(LIBNAME);
             }
         } catch (Exception ex) {
             LOG.fatal(ex, ex);
@@ -50,9 +52,9 @@ public class ZeroMQComponent extends DefaultComponent {
         LOG.trace("Begin ZeroMQComponent.ZeroMQComponent");
         try {
             try {
-                NativeLibraryLoader.loadLibrary("zeromq_support");
+                NativeLibraryLoader.loadLibrary(LIBNAME);
             } catch (java.io.IOException e) {
-                System.loadLibrary("zeromq_support");
+                System.loadLibrary(LIBNAME);
             }
         } catch (Exception ex) {
             LOG.fatal(ex, ex);

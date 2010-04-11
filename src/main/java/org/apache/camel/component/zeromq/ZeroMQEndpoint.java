@@ -40,11 +40,11 @@ public class ZeroMQEndpoint extends DefaultEndpoint implements ManagementAware<Z
     private int concurrentConsumers = 1;
 
     @ManagedAttribute
-    public int getConcurrentConsumers() {
+    public final int getConcurrentConsumers() {
         return concurrentConsumers;
     }
 
-    public void setConcurrentConsumer(int concurrentConsumers) {
+    public final void setConcurrentConsumer(int concurrentConsumers) {
         this.concurrentConsumers = concurrentConsumers;
     }
 
@@ -95,7 +95,7 @@ public class ZeroMQEndpoint extends DefaultEndpoint implements ManagementAware<Z
     }
 
     @Override
-    public boolean isLenientProperties() {
+    public final boolean isLenientProperties() {
         return true;
     }
 
