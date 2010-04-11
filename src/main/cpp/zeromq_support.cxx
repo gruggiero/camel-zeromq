@@ -23,6 +23,7 @@ using namespace std::tr1;
 using namespace boost;
 using namespace zmq;
 
+mutex ZeroMQConsumerSupport::mut_receive;
 mutex ZeroMQConsumerSupport::mut_ctx_socket;
 shared_ptr<zmq::context_t> ZeroMQConsumerSupport::ctx;
 shared_ptr<zmq::socket_t> ZeroMQConsumerSupport::socket;
@@ -60,8 +61,11 @@ void ZeroMQConsumerSupport::stop() {
 }
 
 int ZeroMQConsumerSupport::receive() {
+    lock_guard<mutex> lock(mut_receive);
     this->message.reset(new message_t);
-    socket->recv(this->message.get());
+    if(!socket->recv(this->message.get(), ZMQ_NOBLOCK) || isStopped) {
+        return -1;
+    };
     return message->size();
 }
 

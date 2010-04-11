@@ -44,6 +44,7 @@ class ZeroMQConsumerSupport: public ZeroMQSupport {
 
 protected:
 
+    static boost::mutex mut_receive;
     static boost::mutex mut_ctx_socket;
     static std::tr1::shared_ptr<zmq::context_t> ctx;
     static std::tr1::shared_ptr<zmq::socket_t> socket;

@@ -24,19 +24,19 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.util.Map;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public final class ZeroMQConsumer extends DefaultConsumer {
 
     private static final transient Log LOG = LogFactory.getLog(ZeroMQConsumer.class);
 
-    private final int NUMPOLLERS = 8;
-
-    private PollingThread[] pollingThreads = new PollingThread[NUMPOLLERS];
-    private final Processor processor;
+    private final int NUMPOLLERS = 4;
+    private final Task[] tasks = new Task[NUMPOLLERS];
+    private final ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(NUMPOLLERS);  
 
     public ZeroMQConsumer(DefaultEndpoint endpoint, Processor processor) {
         super(endpoint, processor);
-        this.processor = processor;
     }
 
     @Override
@@ -45,9 +45,8 @@ public final class ZeroMQConsumer extends DefaultConsumer {
             LOG.trace("Begin ZeroMQConsumer.doStart");
             super.doStart();
             for (int i = 0; i < NUMPOLLERS; ++i) {
-                pollingThreads[i] = new PollingThread(getEndpoint(), processor);
-                pollingThreads[i].setDaemon(true);
-                pollingThreads[i].start();
+                tasks[i] = new Task(getEndpoint(), getProcessor());
+                executor.scheduleWithFixedDelay(tasks[i], 0, 1, TimeUnit.NANOSECONDS);
             }
         } catch (Exception ex) {
             LOG.fatal(ex, ex);
@@ -62,10 +61,9 @@ public final class ZeroMQConsumer extends DefaultConsumer {
         try {
             LOG.trace("Begin ZeroMQConsumer.doStop");
             for (int i = 0; i < NUMPOLLERS; ++i) {
-                pollingThreads[i].interrupt();
-                pollingThreads[i].end();
-                pollingThreads[i].join();
+                tasks[i].end();
             }
+            executor.shutdown();
             super.doStop();
         } catch (InterruptedException ex) {
 
@@ -78,7 +76,7 @@ public final class ZeroMQConsumer extends DefaultConsumer {
 
 }
 
-class PollingThread extends Thread {
+class Task implements Runnable {
 
     private static final transient Log LOG = LogFactory.getLog(ZeroMQConsumer.class);
 
@@ -88,22 +86,20 @@ class PollingThread extends Thread {
     private final Processor processor;
     private final ZeroMQConsumerSupport zeroMQConsumerSupport;
 
-    PollingThread(Endpoint endpoint, Processor processor) {
-        setDaemon(true);
+    Task(Endpoint endpoint, Processor processor) {
         this.endpoint = endpoint;
         this.processor = processor;
         this.zeroMQConsumerSupport = new ZeroMQConsumerSupport();
+        Properties params = new Properties();
+        for (Object obj : ((ZeroMQEndpoint) endpoint).getZeroMQProperties().entrySet()) {
+            Map.Entry e = (Map.Entry) obj;
+            params.set((String) e.getKey(), (String) e.getValue());
+        }
+        zeroMQConsumerSupport.start(((ZeroMQEndpoint) endpoint).getZeroMQURI(), params);
     }
 
-    @Override
     public void run() {
         try {
-            Properties params = new Properties();
-            for (Object obj : ((ZeroMQEndpoint) endpoint).getZeroMQProperties().entrySet()) {
-                Map.Entry e = (Map.Entry) obj;
-                params.set((String) e.getKey(), (String) e.getValue());
-            }
-            zeroMQConsumerSupport.start(((ZeroMQEndpoint) endpoint).getZeroMQURI(), params);
             while (!stop) {
                 int size = zeroMQConsumerSupport.receive();
                 if (size != -1) {
