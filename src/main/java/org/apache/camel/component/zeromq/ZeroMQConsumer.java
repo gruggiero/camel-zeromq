@@ -31,12 +31,15 @@ public final class ZeroMQConsumer extends DefaultConsumer {
 
     private static final transient Log LOG = LogFactory.getLog(ZeroMQConsumer.class);
 
-    private final int NUMPOLLERS = 4;
-    private final Task[] tasks = new Task[NUMPOLLERS];
-    private final ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(NUMPOLLERS);  
+    private final int concurrentConsumers;
+    private final Task[] tasks;
+    private final ScheduledThreadPoolExecutor executor;
 
     public ZeroMQConsumer(DefaultEndpoint endpoint, Processor processor) {
         super(endpoint, processor);
+        this.concurrentConsumers = ((ZeroMQEndpoint) endpoint).getConcurrentConsumers();
+        this.tasks = new Task[concurrentConsumers];
+        this.executor = new ScheduledThreadPoolExecutor(concurrentConsumers);
     }
 
     @Override
@@ -44,7 +47,7 @@ public final class ZeroMQConsumer extends DefaultConsumer {
         try {
             LOG.trace("Begin ZeroMQConsumer.doStart");
             super.doStart();
-            for (int i = 0; i < NUMPOLLERS; ++i) {
+            for (int i = 0; i < concurrentConsumers; ++i) {
                 tasks[i] = new Task(getEndpoint(), getProcessor());
                 executor.scheduleWithFixedDelay(tasks[i], 0, 1, TimeUnit.NANOSECONDS);
             }
@@ -60,7 +63,7 @@ public final class ZeroMQConsumer extends DefaultConsumer {
     protected void doStop() {
         try {
             LOG.trace("Begin ZeroMQConsumer.doStop");
-            for (int i = 0; i < NUMPOLLERS; ++i) {
+            for (int i = 0; i < concurrentConsumers; ++i) {
                 tasks[i].end();
             }
             executor.shutdown();

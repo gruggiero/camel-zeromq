@@ -16,6 +16,7 @@
  */
 #include "zeromq_support.h"
 #include <zmq.hpp>
+#include <boost/lexical_cast.hpp>
 #include <iostream>
 
 using namespace std;
@@ -46,9 +47,19 @@ ZeroMQConsumerSupport::~ZeroMQConsumerSupport() {
 
 void ZeroMQConsumerSupport::start(const string& uri, const map<string, string>& properties) {
     lock_guard<mutex> lock(mut_ctx_socket);
+    int concurrentConsumers = 1;
+    for(map<string, string>::const_iterator it = properties.begin(); it != properties.end(); ++it) {
+        if(it->first == "concurrentConsumers") {
+            try {
+                concurrentConsumers = boost::lexical_cast< int >(it->second);
+            }
+            catch( const boost::bad_lexical_cast & ) {
+            }
+        }
+    }
 
     if(ctx.get() == 0) {
-        ctx.reset(new context_t(4, 4));
+        ctx.reset(new context_t(concurrentConsumers, concurrentConsumers));
     }
     if(socket.get() == 0) {
         socket.reset(new socket_t(*ctx, ZMQ_P2P));
