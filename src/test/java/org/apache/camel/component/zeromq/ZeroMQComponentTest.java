@@ -74,7 +74,6 @@ public class ZeroMQComponentTest extends CamelTestSupport {
             }
         }
 
-
         int size = 100000;
 
         CountDownLatch count = new CountDownLatch(size);

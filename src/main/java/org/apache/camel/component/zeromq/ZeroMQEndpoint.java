@@ -44,7 +44,7 @@ public class ZeroMQEndpoint extends DefaultEndpoint implements ManagementAware<Z
         return concurrentConsumers;
     }
 
-    public final void setConcurrentConsumer(int concurrentConsumers) {
+    public final void setConcurrentConsumers(int concurrentConsumers) {
         this.concurrentConsumers = concurrentConsumers;
     }
 

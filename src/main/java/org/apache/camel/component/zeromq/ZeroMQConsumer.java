@@ -103,7 +103,7 @@ class Task implements Runnable {
 
     public void run() {
         try {
-            while (!stop) {
+            while(!stop) {
                 int size = zeroMQConsumerSupport.receive();
                 if (size != -1) {
                     byte[] buffer = new byte[size];
