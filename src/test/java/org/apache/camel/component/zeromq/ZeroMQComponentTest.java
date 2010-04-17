@@ -55,11 +55,13 @@ public class ZeroMQComponentTest extends CamelTestSupport {
                     public void process(Exchange exchange) throws Exception {
                         if (countDownLatch.getCount() == size) {
                             start = System.currentTimeMillis();
+                            System.out.println("start");
                         }
                         byte[] buffer = (byte[]) exchange.getIn().getBody();
                         countDownLatch.countDown();
                         if (countDownLatch.getCount() == 0) {
                             stop = System.currentTimeMillis();
+                            System.out.println("stop");
                         }
                     }
                 });
@@ -85,7 +87,7 @@ public class ZeroMQComponentTest extends CamelTestSupport {
         context.start();
 
         for (int i = 0; i < size; ++i) {
-            this.template.sendBody("zeromq:tcp://127.0.0.1:8000?concurrentConsumers=4", new byte[1024]);
+            this.template.sendBody("zeromq:tcp://127.0.0.1:8000", new byte[1024]);
         }
 
         count.await();
