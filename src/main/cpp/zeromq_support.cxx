@@ -20,18 +20,17 @@
 #include <iostream>
 
 using namespace std;
-using namespace std::tr1;
 using namespace boost;
 using namespace zmq;
 
 mutex ZeroMQConsumerSupport::mut_receive;
 mutex ZeroMQConsumerSupport::mut_ctx_socket;
-shared_ptr<zmq::context_t> ZeroMQConsumerSupport::ctx;
-shared_ptr<zmq::socket_t> ZeroMQConsumerSupport::socket;
+zmq::context_t* ZeroMQConsumerSupport::ctx = 0;
+zmq::socket_t* ZeroMQConsumerSupport::socket = 0;
 
 mutex ZeroMQProducerSupport::mut_ctx_socket;
-shared_ptr<zmq::context_t> ZeroMQProducerSupport::ctx;
-shared_ptr<zmq::socket_t> ZeroMQProducerSupport::socket;
+zmq::context_t* ZeroMQProducerSupport::ctx = 0;
+zmq::socket_t* ZeroMQProducerSupport::socket = 0;
 
 ZeroMQSupport::ZeroMQSupport() {
 }
@@ -39,7 +38,7 @@ ZeroMQSupport::ZeroMQSupport() {
 ZeroMQSupport::~ZeroMQSupport() {
 }
 
-ZeroMQConsumerSupport::ZeroMQConsumerSupport() : isStopped(false) {
+ZeroMQConsumerSupport::ZeroMQConsumerSupport() : isStopped(false), message(0) {
 }
 
 ZeroMQConsumerSupport::~ZeroMQConsumerSupport() {
@@ -58,25 +57,33 @@ void ZeroMQConsumerSupport::start(const string& uri, const map<string, string>& 
         }
     }
 
-    if(ctx.get() == 0) {
-        ctx.reset(new context_t(concurrentConsumers, concurrentConsumers));
+    if(ctx == 0) {
+        ctx = new context_t(concurrentConsumers, concurrentConsumers);
     }
-    if(socket.get() == 0) {
-        socket.reset(new socket_t(*ctx, ZMQ_P2P));
+    if(socket == 0) {
+        socket = new socket_t(*ctx, ZMQ_P2P);
         socket->bind(uri.c_str());
     }
 }
 
 void ZeroMQConsumerSupport::stop() {
+    lock_guard<mutex> lock(mut_ctx_socket);
     isStopped = true;
+    delete ctx;
+    ctx = 0;;
+    delete socket;
+    socket = 0;
 }
 
 int ZeroMQConsumerSupport::receive() {
-    lock_guard<mutex> lock(mut_receive);
-    this->message.reset(new message_t);
-    if(!socket->recv(this->message.get(), ZMQ_NOBLOCK) || isStopped) {
+    delete message;
+    message = new message_t;
+    if(isStopped || socket == 0) {
         return -1;
-    };
+    }
+    if(!socket->recv(message)) {
+        return -1;
+    }
     return message->size();
 }
 
@@ -93,20 +100,24 @@ ZeroMQProducerSupport::~ZeroMQProducerSupport() {
 void ZeroMQProducerSupport::start(const string& uri, const map<string, string>& properties) {
     lock_guard<mutex> lock(mut_ctx_socket);
 
-    if(ctx.get() == 0) {
-        ctx.reset(new context_t(1, 1));
+    if(ctx == 0) {
+        ctx = new context_t(1, 1);
     }
-    if(socket.get() == 0) {
-        socket.reset(new socket_t(*ctx, ZMQ_P2P));
+    if(socket == 0) {
+        socket = new socket_t(*ctx, ZMQ_P2P);
         socket->connect(uri.c_str());
     }
 }
 
 void ZeroMQProducerSupport::stop() {
+    delete socket;
+    socket = 0;
 }
 
 void ZeroMQProducerSupport::send(char * buffer, int size) {
-    message_t msg(size);
-    memcpy(msg.data(), buffer, size);
-    socket->send(msg);
+    if(socket != 0) {
+        message_t msg(size);
+        memcpy(msg.data(), buffer, size);
+        socket->send(msg);
+    }
 }

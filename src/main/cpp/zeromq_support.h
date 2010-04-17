@@ -19,7 +19,6 @@
 
 #ifndef SWIG
 #include <boost/thread.hpp>
-#include <boost/tr1/memory.hpp>
 #include <string>
 #include <map>
 #endif
@@ -46,10 +45,10 @@ protected:
 
     static boost::mutex mut_receive;
     static boost::mutex mut_ctx_socket;
-    static std::tr1::shared_ptr<zmq::context_t> ctx;
-    static std::tr1::shared_ptr<zmq::socket_t> socket;
+    static zmq::context_t* ctx;
+    static zmq::socket_t* socket;
 
-    std::tr1::shared_ptr<zmq::message_t> message;
+    zmq::message_t* message;
     bool isStopped;
 
 public:
@@ -73,8 +72,8 @@ class ZeroMQProducerSupport: public ZeroMQSupport {
 protected:
 
     static boost::mutex mut_ctx_socket;
-    static std::tr1::shared_ptr<zmq::context_t> ctx;
-    static std::tr1::shared_ptr<zmq::socket_t> socket;
+    static zmq::context_t* ctx;
+    static zmq::socket_t* socket;
 
 public:
 
