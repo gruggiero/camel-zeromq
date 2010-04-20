@@ -51,7 +51,7 @@ public class ZeroMQComponentTest extends CamelTestSupport {
 
             @Override
             public void configure() throws Exception {
-                from("zeromq:tcp://127.0.0.1:8000?concurrentConsumers=8").process(new Processor() {
+                from("zeromq:tcp://127.0.0.1:8000?concurrentConsumers=2").process(new Processor() {
                     public void process(Exchange exchange) throws Exception {
                         if (countDownLatch.getCount() == size) {
                             start = System.currentTimeMillis();

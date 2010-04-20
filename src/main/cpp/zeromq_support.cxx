@@ -17,7 +17,6 @@
 #include "zeromq_support.h"
 #include <zmq.hpp>
 #include <boost/lexical_cast.hpp>
-#include <iostream>
 
 using namespace std;
 using namespace boost;
@@ -67,7 +66,6 @@ void ZeroMQConsumerSupport::start(const string& uri, const map<string, string>& 
 }
 
 void ZeroMQConsumerSupport::stop() {
-    //lock_guard<mutex> lock(mut_ctx_socket);
     isStopped = true;
     delete ctx;
     ctx = 0;;
