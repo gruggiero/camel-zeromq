@@ -17,6 +17,7 @@
 #include "zeromq_support.h"
 #include <zmq.hpp>
 #include <boost/lexical_cast.hpp>
+#include <iostream>
 
 using namespace std;
 using namespace boost;
@@ -26,6 +27,8 @@ mutex ZeroMQConsumerSupport::mut_receive;
 mutex ZeroMQConsumerSupport::mut_ctx_socket;
 zmq::context_t* ZeroMQConsumerSupport::ctx = 0;
 zmq::socket_t* ZeroMQConsumerSupport::socket = 0;
+zmq::socket_t* ZeroMQConsumerSupport::old_socket;
+
 
 mutex ZeroMQProducerSupport::mut_ctx_socket;
 zmq::context_t* ZeroMQProducerSupport::ctx = 0;
@@ -41,10 +44,12 @@ ZeroMQConsumerSupport::ZeroMQConsumerSupport() : isStopped(false), message(0) {
 }
 
 ZeroMQConsumerSupport::~ZeroMQConsumerSupport() {
+    delete old_socket;
 }
 
 void ZeroMQConsumerSupport::start(const string& uri, const map<string, string>& properties) {
     lock_guard<mutex> lock(mut_ctx_socket);
+    delete old_socket;
     int concurrentConsumers = 1;
     for(map<string, string>::const_iterator it = properties.begin(); it != properties.end(); ++it) {
         if(it->first == "concurrentConsumers") {
@@ -55,7 +60,6 @@ void ZeroMQConsumerSupport::start(const string& uri, const map<string, string>& 
             }
         }
     }
-
     if(ctx == 0) {
         ctx = new context_t(concurrentConsumers, concurrentConsumers);
     }
@@ -66,19 +70,17 @@ void ZeroMQConsumerSupport::start(const string& uri, const map<string, string>& 
 }
 
 void ZeroMQConsumerSupport::stop() {
+    lock_guard<mutex> lock(mut_ctx_socket);
     isStopped = true;
     delete ctx;
     ctx = 0;;
-    delete socket;
+    old_socket = socket;
     socket = 0;
 }
 
 int ZeroMQConsumerSupport::receive() {
     delete message;
     message = new message_t;
-    if(isStopped || socket == 0) {
-        return -1;
-    }
     if(!socket->recv(message)) {
         return -1;
     }

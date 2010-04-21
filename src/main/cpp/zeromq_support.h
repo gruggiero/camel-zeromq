@@ -47,6 +47,7 @@ protected:
     static boost::mutex mut_ctx_socket;
     static zmq::context_t* ctx;
     static zmq::socket_t* socket;
+    static zmq::socket_t* old_socket;
 
     zmq::message_t* message;
     bool isStopped;
