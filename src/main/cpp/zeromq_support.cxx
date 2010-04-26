@@ -64,7 +64,7 @@ void ZeroMQConsumerSupport::start(const string& uri, const map<string, string>& 
         ctx = new context_t(concurrentConsumers, concurrentConsumers);
     }
     if(socket == 0) {
-        socket = new socket_t(*ctx, ZMQ_P2P);
+        socket = new socket_t(*ctx, ZMQ_PAIR);
         socket->bind(uri.c_str());
     }
 }
@@ -104,7 +104,7 @@ void ZeroMQProducerSupport::start(const string& uri, const map<string, string>& 
         ctx = new context_t(1, 1);
     }
     if(socket == 0) {
-        socket = new socket_t(*ctx, ZMQ_P2P);
+        socket = new socket_t(*ctx, ZMQ_PAIR);
         socket->connect(uri.c_str());
     }
 }
