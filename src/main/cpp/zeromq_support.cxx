@@ -61,7 +61,7 @@ void ZeroMQConsumerSupport::start(const string& uri, const map<string, string>& 
         }
     }
     if(ctx == 0) {
-        ctx = new context_t(concurrentConsumers, concurrentConsumers);
+        ctx = new context_t(concurrentConsumers);
     }
     if(socket == 0) {
         socket = new socket_t(*ctx, ZMQ_PAIR);
@@ -101,7 +101,7 @@ void ZeroMQProducerSupport::start(const string& uri, const map<string, string>& 
     lock_guard<mutex> lock(mut_ctx_socket);
 
     if(ctx == 0) {
-        ctx = new context_t(1, 1);
+        ctx = new context_t(1);
     }
     if(socket == 0) {
         socket = new socket_t(*ctx, ZMQ_PAIR);
