@@ -25,7 +25,6 @@ import org.apache.commons.logging.LogFactory;
 
 import java.util.Map;
 
-@SuppressWarnings("unchecked")
 public class ZeroMQComponent extends DefaultComponent {
 
     private static final transient Log LOG = LogFactory.getLog(ZeroMQComponent.class);
