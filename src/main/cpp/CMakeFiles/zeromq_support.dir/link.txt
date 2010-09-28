@@ -1,1 +1,0 @@
-/usr/bin/c++   -bundle -headerpad_max_install_names  -o libzeromq_support.jnilib CMakeFiles/zeromq_support.dir/zeromq_supportJAVA_wrap.cxx.o CMakeFiles/zeromq_support.dir/zeromq_support.cxx.o /usr/local/lib/libboost_thread-mt.dylib /usr/local/lib/libzmq.a 

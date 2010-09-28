@@ -1,1 +1,0 @@
-/Users/dgreco/Workspace/camel-zeromq/src/main/cpp/CMakeFiles/zeromq_support.dir
